@@ -1,0 +1,31 @@
+{
+  "name": "paypal-integration-project",
+  "version": "1.0.0",
+  "description": "A project for integrating PayPal subscription and payment functionalities.",
+  "main": "src/index.ts",
+  "scripts": {
+    "start": "ts-node src/index.ts",
+    "build": "tsc",
+    "test": "jest",
+    "dev": "ts-node-dev src/index.ts"
+  },
+  "dependencies": {
+    "axios": "^0.21.1",
+    "firebase-admin": "^9.8.0",
+    "express": "^4.17.1",
+    "dotenv": "^10.0.0"
+  },
+  "devDependencies": {
+    "typescript": "^4.3.2",
+    "ts-node": "^10.0.0",
+    "ts-node-dev": "^1.1.8",
+    "jest": "^27.0.6",
+    "@types/jest": "^27.0.1",
+    "@types/node": "^16.7.10",
+    "@types/express": "^4.17.13"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "license": "MIT"
+}

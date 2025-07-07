@@ -1,0 +1,186 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // REGLAS PARA USUARIOS
+    match /users/{userId} {
+      
+      // El usuario puede leer y escribir solo su propio documento
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+
+      // Subcolección: historial de chat de IA
+      match /ai_chat_history/{historyDocId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+
+      // Subcolección: notificaciones (para in-app o push)
+      match /notificaciones/{notiId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+
+      // Subcolección: configuración del usuario (metas, hábitos, etc.)
+      match /configuracion/{docId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+
+      // Subcolección: retos nutricionales (coincide con NUTRITION_CHALLENGES_COLLECTION)
+      match /nutritionChallenges/{challengeId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+
+        // Subcolección: días del reto
+        match /days/{dayId} {
+          allow read, write: if request.auth != null && request.auth.uid == userId;
+        }
+      }
+
+      // Subcolección: retos de entrenamiento físico (coincide con EXERCISE_CHALLENGES_COLLECTION)
+      match /exerciseChallenges/{challengeId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+
+        // Subcolección: días del reto
+        match /days/{dayId} {
+          allow read, write: if request.auth != null && request.auth.uid == userId;
+        }
+      }
+
+      // Subcolección: fitness_challenges (nueva estructura para retos de ejercicio)
+      match /fitness_challenges/{challengeId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+
+        // Subcolección: días del reto
+        match /days/{dayId} {
+          allow read, write: if request.auth != null && request.auth.uid == userId;
+        }
+      }
+
+      // Subcolección: nutrition_challenges (para compatibilidad con el código existente)
+      match /nutrition_challenges/{challengeId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+
+        // Subcolección: días del reto
+        match /days/{dayId} {
+          allow read, write: if request.auth != null && request.auth.uid == userId;
+        }
+      }
+
+      // Subcolección: rutinas de entrenamiento (coincide con WORKOUT_ROUTINES_COLLECTION)
+      match /workoutRoutines/{routineId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+
+      // Subcolección: planes de comidas (coincide con MEAL_PLANS_COLLECTION)
+      match /mealPlans/{mealPlanId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+    }
+
+    // NUEVA ESTRUCTURA: Programas de ejercicio personalizados
+    match /exercise_programs/{programId} {
+      // Solo el creador del programa puede acceder
+      allow read, write: if request.auth != null && 
+                           resource.data.userId == request.auth.uid;
+      
+      // Permitir creación con límites de seguridad estrictos
+      allow create: if request.auth != null && 
+                    request.resource.data.userId == request.auth.uid &&
+                    // Límite: máximo 90 días por programa (para premium)
+                    request.resource.data.totalDays <= 90 &&
+                    // Validar que sea un número razonable
+                    request.resource.data.totalDays >= 1 &&
+                    // Validar estructura mínima requerida
+                    request.resource.data.keys().hasAll(['title', 'description', 'totalDays', 'userId', 'createdAt', 'status']) &&
+                    // Validar longitud de campos para prevenir spam
+                    request.resource.data.title.size() <= 100 &&
+                    request.resource.data.description.size() <= 1000 &&
+                    // Status debe ser válido
+                    request.resource.data.status in ['active', 'paused', 'completed', 'cancelled'];
+
+      // Subcolección: días del programa con protecciones robustas
+      match /days/{dayId} {
+        allow read: if request.auth != null && 
+                     get(/databases/$(database)/documents/exercise_programs/$(programId)).data.userId == request.auth.uid;
+        
+        // Protección estricta contra creación excesiva de días
+        allow create: if request.auth != null && 
+                       get(/databases/$(database)/documents/exercise_programs/$(programId)).data.userId == request.auth.uid &&
+                       // Validar que el dayNumber esté dentro del rango del programa
+                       request.resource.data.dayNumber <= get(/databases/$(database)/documents/exercise_programs/$(programId)).data.totalDays &&
+                       request.resource.data.dayNumber >= 1 &&
+                       // El programId debe coincidir exactamente
+                       request.resource.data.programId == programId &&
+                       // Validar estructura mínima del día
+                       request.resource.data.keys().hasAll(['dayNumber', 'programId', 'exercises', 'createdAt']) &&
+                       // Limitar número de ejercicios por día (anti-spam)
+                       request.resource.data.exercises.size() <= 20 &&
+                       // El dayId debe seguir el formato esperado (day-X)
+                       dayId.matches('^day-[0-9]+$');
+        
+        allow update: if request.auth != null && 
+                       get(/databases/$(database)/documents/exercise_programs/$(programId)).data.userId == request.auth.uid &&
+                       // No permitir cambiar dayNumber o programId en updates
+                       request.resource.data.dayNumber == resource.data.dayNumber &&
+                       request.resource.data.programId == resource.data.programId;
+      }
+    }
+
+    // NUEVA ESTRUCTURA: Retos nutricionales personalizados
+    match /nutrition_challenges/{challengeId} {
+      // Solo el creador del reto puede acceder
+      allow read, write: if request.auth != null && 
+                           resource.data.userId == request.auth.uid;
+      
+      // Permitir creación con límites de seguridad estrictos
+      allow create: if request.auth != null && 
+                    request.resource.data.userId == request.auth.uid &&
+                    // Límite: máximo 90 días por reto nutricional (para premium)
+                    request.resource.data.totalDays <= 90 &&
+                    // Validar que sea un número razonable
+                    request.resource.data.totalDays >= 1 &&
+                    // Validar estructura mínima requerida
+                    request.resource.data.keys().hasAll(['title', 'description', 'totalDays', 'userId', 'createdAt', 'status']) &&
+                    // Validar longitud de campos para prevenir spam
+                    request.resource.data.title.size() <= 100 &&
+                    request.resource.data.description.size() <= 1000 &&
+                    // Status debe ser válido
+                    request.resource.data.status in ['active', 'paused', 'completed', 'cancelled'];
+
+      // Subcolección: días del reto nutricional con protecciones robustas
+      match /days/{dayId} {
+        allow read: if request.auth != null && 
+                     get(/databases/$(database)/documents/nutrition_challenges/$(challengeId)).data.userId == request.auth.uid;
+        
+        // Protección estricta contra creación excesiva de días
+        allow create: if request.auth != null && 
+                       get(/databases/$(database)/documents/nutrition_challenges/$(challengeId)).data.userId == request.auth.uid &&
+                       // Validar que el dayNumber esté dentro del rango del reto
+                       request.resource.data.dayNumber <= get(/databases/$(database)/documents/nutrition_challenges/$(challengeId)).data.totalDays &&
+                       request.resource.data.dayNumber >= 1 &&
+                       // El challengeId debe coincidir exactamente
+                       request.resource.data.challengeId == challengeId &&
+                       // Validar estructura mínima del día
+                       request.resource.data.keys().hasAll(['dayNumber', 'challengeId', 'meals', 'createdAt']) &&
+                       // Limitar número de comidas por día (anti-spam)
+                       request.resource.data.meals.size() <= 10 &&
+                       // El dayId debe seguir el formato esperado (day-X)
+                       dayId.matches('^day-[0-9]+$');
+        
+        allow update: if request.auth != null && 
+                       get(/databases/$(database)/documents/nutrition_challenges/$(challengeId)).data.userId == request.auth.uid &&
+                       // No permitir cambiar dayNumber o challengeId en updates
+                       request.resource.data.dayNumber == resource.data.dayNumber &&
+                       request.resource.data.challengeId == resource.data.challengeId;
+      }
+    }
+
+    // --- OPCIONAL: CONTENIDO PÚBLICO ---
+    match /publico/{docId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    // --- REGLA GLOBAL POR DEFECTO: DENEGAR TODO ---
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+} 
