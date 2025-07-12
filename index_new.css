@@ -1,0 +1,399 @@
+/* ========================================
+   FORTIMIND - DIGITAL MOON INSPIRED DESIGN SYSTEM
+   Paleta elegante inspirada en digital-moon.eu
+   ======================================== */
+
+/* TOKENS DE COLOR - DIGITAL MOON PALETTE */
+:root {
+  /* Backgrounds - Deep Space Theme */
+  --bg-primary: #0A0B1E;
+  --bg-secondary: #1A1B2E;
+  --bg-card: #2A2B3E;
+  --bg-glass: rgba(26, 27, 46, 0.7);
+  --border-primary: rgba(99, 102, 241, 0.3);
+  --border-glow: rgba(139, 92, 246, 0.4);
+  
+  /* Primary - Electric Blue */
+  --accent-primary: #007CF0;
+  --accent-primary-light: #00D4FF;
+  --accent-primary-dark: #0056B3;
+  
+  /* Secondary - Deep Purple */
+  --accent-secondary: #6366F1;
+  --accent-secondary-light: #8B5CF6;
+  --accent-secondary-dark: #4C1D95;
+  
+  /* Accent - Platinum Gold */
+  --accent-gold: #F7C52D;
+  --accent-gold-light: #FFD700;
+  --accent-gold-dark: #E6B800;
+  
+  /* Status Colors */
+  --accent-green: #10B981;
+  --accent-red: #EF4444;
+  --accent-orange: #F59E0B;
+  
+  /* Text */
+  --text-primary: #FFFFFF;
+  --text-secondary: #E2E8F0;
+  --text-muted: #94A3B8;
+  --text-dark: #1A1B2E;
+  
+  /* Gradientes */
+  --gradient-primary: linear-gradient(135deg, #007CF0, #00D4FF);
+  --gradient-secondary: linear-gradient(135deg, #6366F1, #8B5CF6);
+  --gradient-accent: linear-gradient(135deg, #F7C52D, #FFD700);
+  --gradient-hero: linear-gradient(135deg, #0A0B1E 0%, #1A1B2E 50%, #2A2B3E 100%);
+  --gradient-glass: linear-gradient(135deg, rgba(26, 27, 46, 0.9), rgba(42, 43, 62, 0.7));
+  
+  /* Sombras */
+  --shadow-primary: 0 0 16px 2px rgba(0, 124, 240, 0.4);
+  --shadow-secondary: 0 0 16px 2px rgba(99, 102, 241, 0.4);
+  --shadow-accent: 0 0 16px 2px rgba(247, 197, 45, 0.4);
+  --shadow-glass: 0 8px 32px rgba(0, 124, 240, 0.15);
+  
+  /* Hover shadows */
+  --shadow-primary-hover: 0 0 32px 4px rgba(0, 212, 255, 0.6);
+  --shadow-secondary-hover: 0 0 32px 4px rgba(139, 92, 246, 0.6);
+  --shadow-accent-hover: 0 0 32px 4px rgba(255, 215, 0, 0.6);
+  --shadow-green-hover: 0 0 32px 4px rgba(16, 185, 129, 0.6);
+  --shadow-red-hover: 0 0 32px 4px rgba(239, 68, 68, 0.6);
+  --shadow-orange-hover: 0 0 32px 4px rgba(245, 158, 11, 0.6);
+}
+
+/* TIPOGRAFÍA FUTURISTA */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Inter', 'SF Pro Display', system-ui, -apple-system, sans-serif;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+}
+
+.font-futuristic {
+  font-family: 'Inter', 'SF Pro Display', sans-serif;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.font-futuristic-light {
+  font-family: 'Inter', 'SF Pro Display', sans-serif;
+  font-weight: 300;
+  letter-spacing: 0.03em;
+}
+
+/* GLASSMORPHISM - Digital Moon Style */
+.glassmorphism {
+  background: var(--bg-glass);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--border-primary);
+  border-radius: 16px;
+}
+
+.glass-card {
+  background: var(--gradient-glass);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--border-glow);
+  border-radius: 20px;
+  box-shadow: var(--shadow-glass);
+}
+
+/* EFECTOS DE GLOW - Digital Moon Style */
+.glow-primary {
+  box-shadow: var(--shadow-primary);
+  transition: box-shadow 0.3s ease;
+}
+
+.glow-primary:hover {
+  box-shadow: var(--shadow-primary-hover);
+}
+
+.glow-secondary {
+  box-shadow: var(--shadow-secondary);
+  transition: box-shadow 0.3s ease;
+}
+
+.glow-secondary:hover {
+  box-shadow: var(--shadow-secondary-hover);
+}
+
+.glow-accent {
+  box-shadow: var(--shadow-accent);
+  transition: box-shadow 0.3s ease;
+}
+
+.glow-accent:hover {
+  box-shadow: var(--shadow-accent-hover);
+}
+
+.glow-green {
+  box-shadow: 0 0 16px 2px rgba(16, 185, 129, 0.4);
+  transition: box-shadow 0.3s ease;
+}
+
+.glow-green:hover {
+  box-shadow: var(--shadow-green-hover);
+}
+
+.glow-red {
+  box-shadow: 0 0 16px 2px rgba(239, 68, 68, 0.4);
+  transition: box-shadow 0.3s ease;
+}
+
+.glow-red:hover {
+  box-shadow: var(--shadow-red-hover);
+}
+
+/* TEXTO CON GLOW - Digital Moon Style */
+.text-glow-primary {
+  color: var(--accent-primary);
+  text-shadow: 0 0 12px var(--accent-primary);
+}
+
+.text-glow-secondary {
+  color: var(--accent-secondary);
+  text-shadow: 0 0 12px var(--accent-secondary);
+}
+
+.text-glow-accent {
+  color: var(--accent-gold);
+  text-shadow: 0 0 12px var(--accent-gold);
+}
+
+/* ANIMACIONES */
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.6s ease-out;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+@keyframes pulse-glow-primary {
+  0%, 100% { box-shadow: var(--shadow-primary); }
+  50% { box-shadow: var(--shadow-primary-hover); }
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow-primary 2s ease-in-out infinite;
+}
+
+/* BOTONES FUTURISTAS - Digital Moon Style */
+.btn-futuristic {
+  background: var(--gradient-primary);
+  color: var(--text-primary);
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  border: none;
+  border-radius: 12px;
+  padding: 12px 24px;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  box-shadow: var(--shadow-primary);
+}
+
+.btn-futuristic:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-primary-hover);
+}
+
+.btn-futuristic-secondary {
+  background: var(--gradient-secondary);
+  box-shadow: var(--shadow-secondary);
+}
+
+.btn-futuristic-secondary:hover {
+  box-shadow: var(--shadow-secondary-hover);
+}
+
+.btn-futuristic-accent {
+  background: var(--gradient-accent);
+  color: var(--text-dark);
+  box-shadow: var(--shadow-accent);
+}
+
+.btn-futuristic-accent:hover {
+  box-shadow: var(--shadow-accent-hover);
+}
+
+/* TARJETAS FUTURISTAS - Digital Moon Style */
+.card-futuristic {
+  background: var(--gradient-glass);
+  border: 1px solid var(--border-primary);
+  border-radius: 16px;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  box-shadow: var(--shadow-glass);
+}
+
+.card-futuristic:hover {
+  transform: translateY(-4px);
+  border-color: var(--accent-primary);
+  box-shadow: var(--shadow-primary);
+}
+
+.card-futuristic::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: var(--gradient-primary);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.card-futuristic:hover::before {
+  opacity: 1;
+}
+
+/* FORMULARIOS FUTURISTAS - Digital Moon Style */
+.input-futuristic {
+  background: var(--bg-card);
+  border: 1px solid var(--border-glow);
+  border-radius: 12px;
+  color: var(--text-primary);
+  padding: 12px 16px;
+  transition: all 0.3s ease;
+  font-family: inherit;
+}
+
+.input-futuristic:focus {
+  outline: none;
+  border-color: var(--accent-primary);
+  box-shadow: var(--shadow-primary);
+}
+
+/* MICROINTERACCIONES */
+.hover-lift {
+  transition: transform 0.2s ease;
+}
+
+.hover-lift:hover {
+  transform: translateY(-2px);
+}
+
+.hover-glow {
+  transition: filter 0.3s ease;
+}
+
+.hover-glow:hover {
+  filter: brightness(1.1) saturate(1.2);
+}
+
+/* SCROLLBARS FUTURISTAS - Digital Moon Style */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-secondary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--accent-primary);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-secondary);
+}
+
+/* CLASES DE UTILIDAD FUTURISTAS */
+.futuristic-button {
+  background: var(--gradient-primary);
+  color: var(--text-primary);
+  border: none;
+  border-radius: 12px;
+  padding: 12px 24px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  box-shadow: var(--shadow-primary);
+}
+
+.futuristic-button:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-primary-hover);
+}
+
+.futuristic-button-secondary {
+  background: var(--gradient-secondary);
+  box-shadow: var(--shadow-secondary);
+}
+
+.futuristic-button-secondary:hover {
+  box-shadow: var(--shadow-secondary-hover);
+}
+
+.futuristic-card {
+  background: var(--gradient-glass);
+  border: 1px solid var(--border-primary);
+  border-radius: 16px;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: var(--shadow-glass);
+  transition: all 0.3s ease;
+}
+
+.futuristic-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--accent-primary);
+  box-shadow: var(--shadow-primary);
+}
+
+.futuristic-input {
+  background: var(--bg-card);
+  border: 1px solid var(--border-primary);
+  border-radius: 12px;
+  color: var(--text-primary);
+  padding: 12px 16px;
+  transition: all 0.3s ease;
+  font-family: inherit;
+}
+
+.futuristic-input:focus {
+  outline: none;
+  border-color: var(--accent-primary);
+  box-shadow: var(--shadow-primary);
+}
+
+/* RESPONSIVE UTILITIES */
+@media (max-width: 768px) {
+  .glassmorphism {
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+  
+  .font-futuristic {
+    letter-spacing: 0.03em;
+  }
+}

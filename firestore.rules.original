@@ -1,0 +1,554 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // REGLAS PARA USUARIOS (mejoradas)
+    match /users/{userId} {
+      
+      // El usuario puede leer y escribir solo su propio documento
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+      
+      // Validación adicional al crear usuario
+      allow create: if request.auth != null && 
+                    request.auth.uid == userId &&
+                    request.resource.data.uid == userId;
+      
+      // Los administradores pueden leer todos los usuarios para gestión
+      allow read: if request.auth != null && isAdmin(request.auth.uid);
+
+      // Subcolección: historial de chat de IA
+      match /ai_chat_history/{historyDocId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+
+      // Subcolección: notificaciones (para in-app o push)
+      match /notificaciones/{notiId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+
+      // Subcolección: configuración del usuario (metas, hábitos, etc.)
+      match /configuracion/{docId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+
+      // Subcolección: retos nutricionales (coincide con NUTRITION_CHALLENGES_COLLECTION)
+      match /nutritionChallenges/{challengeId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+
+        // Subcolección: días del reto
+        match /days/{dayId} {
+          allow read, write: if request.auth != null && request.auth.uid == userId;
+        }
+      }
+
+      // Subcolección: retos de entrenamiento físico (coincide con EXERCISE_CHALLENGES_COLLECTION)
+      match /exerciseChallenges/{challengeId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+
+        // Subcolección: días del reto
+        match /days/{dayId} {
+          allow read, write: if request.auth != null && request.auth.uid == userId;
+        }
+      }
+
+      // Subcolección: fitness_challenges (nueva estructura para retos de ejercicio)
+      match /fitness_challenges/{challengeId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+
+        // Subcolección: días del reto
+        match /days/{dayId} {
+          allow read, write: if request.auth != null && request.auth.uid == userId;
+        }
+      }
+
+      // Subcolección: nutrition_challenges (para compatibilidad con el código existente)
+      match /nutrition_challenges/{challengeId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+
+        // Subcolección: días del reto
+        match /days/{dayId} {
+          allow read, write: if request.auth != null && request.auth.uid == userId;
+        }
+      }
+
+      // Subcolección: rutinas de entrenamiento (coincide con WORKOUT_ROUTINES_COLLECTION)
+      match /workoutRoutines/{routineId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+
+      // Subcolección: planes de comidas (coincide con MEAL_PLANS_COLLECTION)
+      match /mealPlans/{mealPlanId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+    }
+
+    // NUEVA ESTRUCTURA: Programas de ejercicio personalizados
+    match /exercise_programs/{programId} {
+      // Solo el creador del programa puede acceder
+      allow read, write: if request.auth != null && 
+                           resource.data.userId == request.auth.uid;
+      
+      // Permitir creación con límites de seguridad estrictos
+      allow create: if request.auth != null && 
+                    request.resource.data.userId == request.auth.uid &&
+                    // Límite: máximo 90 días por programa (para premium)
+                    request.resource.data.totalDays <= 90 &&
+                    // Validar que sea un número razonable
+                    request.resource.data.totalDays >= 1 &&
+                    // Validar estructura mínima requerida
+                    request.resource.data.keys().hasAll(['title', 'description', 'totalDays', 'userId', 'createdAt', 'status']) &&
+                    // Validar longitud de campos para prevenir spam
+                    request.resource.data.title.size() <= 100 &&
+                    request.resource.data.description.size() <= 1000 &&
+                    // Status debe ser válido
+                    request.resource.data.status in ['active', 'paused', 'completed', 'cancelled'];
+
+      // Subcolección: días del programa con protecciones robustas
+      match /days/{dayId} {
+        allow read: if request.auth != null && 
+                     get(/databases/$(database)/documents/exercise_programs/$(programId)).data.userId == request.auth.uid;
+        
+        // Protección estricta contra creación excesiva de días
+        allow create: if request.auth != null && 
+                       get(/databases/$(database)/documents/exercise_programs/$(programId)).data.userId == request.auth.uid &&
+                       // Validar que el dayNumber esté dentro del rango del programa
+                       request.resource.data.dayNumber <= get(/databases/$(database)/documents/exercise_programs/$(programId)).data.totalDays &&
+                       request.resource.data.dayNumber >= 1 &&
+                       // El programId debe coincidir exactamente
+                       request.resource.data.programId == programId &&
+                       // Validar estructura mínima del día
+                       request.resource.data.keys().hasAll(['dayNumber', 'programId', 'exercises', 'createdAt']) &&
+                       // Limitar número de ejercicios por día (anti-spam)
+                       request.resource.data.exercises.size() <= 20 &&
+                       // El dayId debe seguir el formato esperado (day-X)
+                       dayId.matches('^day-[0-9]+$');
+        
+        allow update: if request.auth != null && 
+                       get(/databases/$(database)/documents/exercise_programs/$(programId)).data.userId == request.auth.uid &&
+                       // No permitir cambiar dayNumber o programId en updates
+                       request.resource.data.dayNumber == resource.data.dayNumber &&
+                       request.resource.data.programId == resource.data.programId;
+      }
+    }
+
+    // NUEVA ESTRUCTURA: Retos nutricionales personalizados
+    match /nutrition_challenges/{challengeId} {
+      // Solo el creador del reto puede acceder
+      allow read, write: if request.auth != null && 
+                           resource.data.userId == request.auth.uid;
+      
+      // Permitir creación con límites de seguridad estrictos
+      allow create: if request.auth != null && 
+                    request.resource.data.userId == request.auth.uid &&
+                    // Límite: máximo 90 días por reto nutricional (para premium)
+                    request.resource.data.totalDays <= 90 &&
+                    // Validar que sea un número razonable
+                    request.resource.data.totalDays >= 1 &&
+                    // Validar estructura mínima requerida
+                    request.resource.data.keys().hasAll(['title', 'description', 'totalDays', 'userId', 'createdAt', 'status']) &&
+                    // Validar longitud de campos para prevenir spam
+                    request.resource.data.title.size() <= 100 &&
+                    request.resource.data.description.size() <= 1000 &&
+                    // Status debe ser válido
+                    request.resource.data.status in ['active', 'paused', 'completed', 'cancelled'];
+
+      // Subcolección: días del reto nutricional con protecciones robustas
+      match /days/{dayId} {
+        allow read: if request.auth != null && 
+                     get(/databases/$(database)/documents/nutrition_challenges/$(challengeId)).data.userId == request.auth.uid;
+        
+        // Protección estricta contra creación excesiva de días
+        allow create: if request.auth != null && 
+                       get(/databases/$(database)/documents/nutrition_challenges/$(challengeId)).data.userId == request.auth.uid &&
+                       // Validar que el dayNumber esté dentro del rango del reto
+                       request.resource.data.dayNumber <= get(/databases/$(database)/documents/nutrition_challenges/$(challengeId)).data.totalDays &&
+                       request.resource.data.dayNumber >= 1 &&
+                       // El challengeId debe coincidir exactamente
+                       request.resource.data.challengeId == challengeId &&
+                       // Validar estructura mínima del día
+                       request.resource.data.keys().hasAll(['dayNumber', 'challengeId', 'meals', 'createdAt']) &&
+                       // Limitar número de comidas por día (anti-spam)
+                       request.resource.data.meals.size() <= 10 &&
+                       // El dayId debe seguir el formato esperado (day-X)
+                       dayId.matches('^day-[0-9]+$');
+        
+        allow update: if request.auth != null && 
+                       get(/databases/$(database)/documents/nutrition_challenges/$(challengeId)).data.userId == request.auth.uid &&
+                       // No permitir cambiar dayNumber o challengeId en updates
+                       request.resource.data.dayNumber == resource.data.dayNumber &&
+                       request.resource.data.challengeId == resource.data.challengeId;
+      }
+    }
+
+    // REGLAS PARA ADMINISTRADORES
+    match /admin_users/{adminId} {
+      // Los administradores pueden leer y escribir en la colección de admins
+      allow read, write: if request.auth != null && isAdmin(request.auth.uid);
+    }
+
+    // REGLAS PARA MÉTRICAS Y ESTADÍSTICAS
+    match /metrics/{metricId} {
+      // Solo los administradores pueden leer métricas
+      allow read, write: if request.auth != null && isAdmin(request.auth.uid);
+    }
+
+    match /analytics/{analyticId} {
+      // Solo los administradores pueden leer analytics
+      allow read, write: if request.auth != null && isAdmin(request.auth.uid);
+    }
+
+    match /stats/{statId} {
+      // Solo los administradores pueden leer estadísticas
+      allow read, write: if request.auth != null && isAdmin(request.auth.uid);
+    }
+
+    // REGLAS PARA MÉTRICAS DE ADMINISTRADOR (nuevas)
+    match /admin_metrics/{metricId} {
+      // Solo los administradores pueden leer y escribir métricas de admin
+      allow read, write: if request.auth != null && isAdmin(request.auth.uid);
+    }
+
+    // REGLAS PARA ALERTAS DEL SISTEMA
+    match /system_alerts/{alertId} {
+      // Solo los administradores pueden leer y escribir alertas del sistema
+      allow read, write: if request.auth != null && isAdmin(request.auth.uid);
+    }
+
+    // REGLAS PARA ACTIVIDAD DE USUARIOS
+    match /user_activity/{activityId} {
+      // Los usuarios pueden crear actividad propia
+      allow create: if request.auth != null && 
+                    request.resource.data.userId == request.auth.uid &&
+                    request.resource.data.keys().hasAll(['userId', 'action', 'timestamp']) &&
+                    request.resource.data.timestamp is timestamp;
+      
+      // Los usuarios pueden leer su propia actividad
+      allow read: if request.auth != null && 
+                  resource.data.userId == request.auth.uid;
+      
+      // Los administradores pueden leer todas las actividades
+      allow read: if request.auth != null && isAdmin(request.auth.uid);
+    }
+
+    // REGLAS PARA SUSCRIPCIONES DE USUARIOS
+    match /user_subscriptions/{subscriptionId} {
+      // Los usuarios pueden leer y escribir su propia suscripción
+      allow read, write: if request.auth != null && 
+                          resource.data.userId == request.auth.uid;
+      
+      // Validación al crear suscripciones
+      allow create: if request.auth != null && 
+                    request.resource.data.userId == request.auth.uid &&
+                    request.resource.data.keys().hasAll(['userId', 'status', 'createdAt']) &&
+                    request.resource.data.createdAt is timestamp &&
+                    request.resource.data.status in ['active', 'inactive', 'cancelled', 'pending'];
+      
+      // Los administradores pueden leer y escribir todas las suscripciones
+      allow read, write: if request.auth != null && isAdmin(request.auth.uid);
+    }
+
+    // REGLAS PARA CONSULTAS (diferente de consultas_globales)
+    match /consultas/{consultaId} {
+      // El usuario propietario puede leer/escribir su consulta
+      allow read, write: if request.auth != null && 
+        (request.auth.uid == resource.data.userId || request.auth.uid == resource.data.specialistId);
+      
+      // Validación al crear consultas
+      allow create: if request.auth != null && 
+                    (request.resource.data.userId == request.auth.uid || 
+                     (isEspecialista(request.auth.uid) && request.resource.data.specialistId == request.auth.uid)) &&
+                    request.resource.data.keys().hasAll(['userId', 'createdAt']) &&
+                    request.resource.data.createdAt is timestamp;
+      
+      // Los administradores pueden leer y escribir todas las consultas
+      allow read, write: if request.auth != null && isAdmin(request.auth.uid);
+    }
+
+    // REGLAS PARA COLECCIÓN USUARIOS (Principal)
+    match /usuarios/{userId} {
+      // El usuario puede leer y escribir solo su propio documento
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+      
+      // Los administradores pueden leer todos los usuarios para gestión
+      allow read: if request.auth != null && isAdmin(request.auth.uid);
+      
+      // Permitir creación de perfil de usuario
+      allow create: if request.auth != null && 
+                    request.auth.uid == userId &&
+                    request.resource.data.keys().hasAll(['email']) &&
+                    request.resource.data.email == request.auth.token.email;
+    }
+
+    // REGLAS PARA USUARIOS ESPECIALISTAS
+    match /usuarios_especialistas/{especialistaId} {
+      // El especialista puede leer y escribir su propio perfil
+      allow read, write: if request.auth != null && request.auth.uid == especialistaId;
+      
+      // Los administradores pueden leer todos los especialistas
+      allow read: if request.auth != null && isAdmin(request.auth.uid);
+      
+      // Los usuarios pueden leer perfiles de especialistas (para buscar profesionales)
+      allow read: if request.auth != null;
+      
+      // Validación al crear perfil de especialista
+      allow create: if request.auth != null && 
+                    request.auth.uid == especialistaId &&
+                    request.resource.data.keys().hasAll(['email', 'nombre', 'tipo']) &&
+                    request.resource.data.email == request.auth.token.email;
+    }
+
+    // REGLAS PARA ADMINISTRADORES
+    match /admin_users/{adminId} {
+      // Solo administradores pueden leer/escribir esta colección
+      allow read, write: if request.auth != null && isAdmin(request.auth.uid);
+      
+      // El admin específico puede leer su propio documento
+      allow read: if request.auth != null && request.auth.uid == adminId;
+    }
+
+    // REGLAS PARA ACTIVIDADES DE USUARIOS (para métricas del admin)
+    match /user_activities/{activityId} {
+      // El usuario puede crear y leer su propia actividad
+      allow read, write: if request.auth != null && 
+                           resource.data.userId == request.auth.uid;
+      
+      // Los administradores pueden leer todas las actividades para métricas
+      allow read: if request.auth != null && isAdmin(request.auth.uid);
+      
+      // Validación al crear actividad
+      allow create: if request.auth != null && 
+                    request.resource.data.userId == request.auth.uid &&
+                    request.resource.data.keys().hasAll(['userId', 'timestamp']);
+    }
+
+    // REGLAS PARA SESIONES DE EJERCICIO (para métricas del admin)
+    match /exercise_sessions/{sessionId} {
+      // El usuario puede crear y leer sus propias sesiones
+      allow read, write: if request.auth != null && 
+                           resource.data.userId == request.auth.uid;
+      
+      // Los administradores pueden leer todas las sesiones para métricas
+      allow read: if request.auth != null && isAdmin(request.auth.uid);
+      
+      // Validación al crear sesión
+      allow create: if request.auth != null && 
+                    request.resource.data.userId == request.auth.uid;
+    }
+
+    // REGLAS PARA LOGS DE NUTRICIÓN (para métricas del admin)
+    match /nutrition_logs/{logId} {
+      // El usuario puede crear y leer sus propios logs
+      allow read, write: if request.auth != null && 
+                           resource.data.userId == request.auth.uid;
+      
+      // Los administradores pueden leer todos los logs para métricas
+      allow read: if request.auth != null && isAdmin(request.auth.uid);
+      
+      // Validación al crear log
+      allow create: if request.auth != null && 
+                    request.resource.data.userId == request.auth.uid;
+    }
+
+    // REGLAS PARA INTERACCIONES DE IA (para métricas del admin)
+    match /ai_interactions/{interactionId} {
+      // El usuario puede crear y leer sus propias interacciones
+      allow read, write: if request.auth != null && 
+                           resource.data.userId == request.auth.uid;
+      
+      // Los administradores pueden leer todas las interacciones para métricas
+      allow read: if request.auth != null && isAdmin(request.auth.uid);
+      
+      // Validación al crear interacción
+      allow create: if request.auth != null && 
+                    request.resource.data.userId == request.auth.uid;
+    }
+
+    // REGLAS PARA ENTRADAS DE DIARIO (para métricas del admin)
+    match /journal_entries/{entryId} {
+      // El usuario puede crear y leer sus propias entradas
+      allow read, write: if request.auth != null && 
+                           resource.data.userId == request.auth.uid;
+      
+      // Los administradores pueden leer todas las entradas para métricas
+      allow read: if request.auth != null && isAdmin(request.auth.uid);
+      
+      // Validación al crear entrada
+      allow create: if request.auth != null && 
+                    request.resource.data.userId == request.auth.uid;
+    }
+
+    // REGLAS PARA SESIONES DE USUARIO (para métricas del admin)
+    match /user_sessions/{sessionId} {
+      // El usuario puede crear y leer sus propias sesiones
+      allow read, write: if request.auth != null && 
+                           resource.data.userId == request.auth.uid;
+      
+      // Los administradores pueden leer todas las sesiones para métricas
+      allow read: if request.auth != null && isAdmin(request.auth.uid);
+      
+      // Validación al crear sesión
+      allow create: if request.auth != null && 
+                    request.resource.data.userId == request.auth.uid;
+    }
+
+    // REGLAS PARA PLANES DE NUTRICIÓN (para métricas del admin)  
+    match /nutrition_plans/{planId} {
+      // El usuario puede crear y leer sus propios planes
+      allow read, write: if request.auth != null && 
+                           resource.data.userId == request.auth.uid;
+      
+      // Los administradores pueden leer todos los planes para métricas
+      allow read: if request.auth != null && isAdmin(request.auth.uid);
+      
+      // Validación al crear plan
+      allow create: if request.auth != null && 
+                    request.resource.data.userId == request.auth.uid;
+    }
+      // Acceso del propio especialista y admin (con validación de estructura)
+      allow read, write: if request.auth != null && (
+        request.auth.uid == especialistaId || isAdmin(request.auth.uid)
+      );
+      
+      // Validación de estructura mínima al crear/actualizar especialistas
+      allow create: if request.auth != null && 
+                    isAdmin(request.auth.uid) &&
+                    request.resource.data.keys().hasAll([
+                      'uid', 'displayId', 'nombre', 'tipo',
+                      'diasDisponibles', 'horario', 'tarifa',
+                      'experiencia', 'especialidades', 'createdAt', 'activo'
+                    ]) &&
+                    request.resource.data.createdAt is timestamp &&
+                    request.resource.data.uid == especialistaId;
+      
+      // Acceso público específico (get individual si está activo)
+      allow get: if request.auth != null && resource.data.activo == true;
+      
+      // Acceso público para listar (con filtrado del lado cliente)
+      allow list: if request.auth != null;
+    }
+
+    // REGLAS PARA SESIONES DE CLIENTES
+    match /clientes_sesiones/{clienteUid}/sesiones/{sesionId} {
+      // Solo el especialista que realizó la sesión puede leer/escribir
+      allow read, write: if request.auth != null && 
+                          request.auth.uid == resource.data.especialista.uid;
+      
+      // Validación al crear sesiones
+      allow create: if request.auth != null && 
+                    isEspecialista(request.auth.uid) &&
+                    request.resource.data.especialista.uid == request.auth.uid &&
+                    request.resource.data.keys().hasAll(['especialista', 'fecha', 'notas', 'clienteUid']) &&
+                    request.resource.data.fecha is timestamp;
+      
+      // Los administradores pueden leer todas las sesiones
+      allow read: if request.auth != null && isAdmin(request.auth.uid);
+      
+      // El cliente puede leer sus propias sesiones
+      allow read: if request.auth != null && request.auth.uid == clienteUid;
+    }
+
+    // REGLAS PARA CLIENTES ASIGNADOS A ESPECIALISTAS
+    match /especialista_clientes/{especialistaId}/clientes/{clienteId} {
+      // Solo el especialista puede gestionar sus clientes
+      allow read, write: if request.auth != null && 
+                          request.auth.uid == especialistaId;
+      
+      // Validación al asignar clientes
+      allow create: if request.auth != null && 
+                    request.auth.uid == especialistaId &&
+                    isEspecialista(request.auth.uid) &&
+                    request.resource.data.keys().hasAll(['clienteUid', 'fechaAsignacion', 'activo']) &&
+                    request.resource.data.fechaAsignacion is timestamp;
+      
+      // Los administradores pueden leer todas las asignaciones
+      allow read: if request.auth != null && isAdmin(request.auth.uid);
+    }
+
+    // REGLAS PARA CONSULTAS GLOBALES (mejoradas)
+    match /consultas_globales/{consultaId} {
+      // El usuario propietario puede leer/escribir su consulta (con validaciones adicionales)
+      allow read, write: if request.auth != null && 
+        (request.auth.uid == resource.data.userId || request.auth.uid == resource.data.specialistId);
+      
+      // Validación al crear consultas
+      allow create: if request.auth != null && 
+                    (request.resource.data.userId == request.auth.uid || 
+                     (isEspecialista(request.auth.uid) && request.resource.data.specialistId == request.auth.uid)) &&
+                    request.resource.data.keys().hasAll(['userId', 'createdAt']) &&
+                    request.resource.data.createdAt is timestamp;
+      
+      // Los administradores pueden leer y escribir todas las consultas
+      allow read, write: if request.auth != null && isAdmin(request.auth.uid);
+    }
+
+    // REGLAS PARA REPORTES IA (mejoradas)
+    match /reportes_ia/{reporteId} {
+      // Solo el especialista que creó el reporte puede leerlo/escribirlo
+      allow read, write: if request.auth != null && 
+                          request.auth.uid == resource.data.specialistId &&
+                          isEspecialista(request.auth.uid);
+      
+      // Validación al crear reportes
+      allow create: if request.auth != null && 
+                    isEspecialista(request.auth.uid) &&
+                    request.resource.data.specialistId == request.auth.uid &&
+                    request.resource.data.keys().hasAll(['userId', 'specialistId', 'createdAt', 'privacidad']) &&
+                    request.resource.data.createdAt is timestamp &&
+                    request.resource.data.privacidad in ['privado', 'contextual'];
+      
+      // El usuario afectado puede leer reportes que sean 'contextual' (con validación adicional)
+      allow read: if request.auth != null && 
+        request.auth.uid == resource.data.userId && 
+        resource.data.privacidad == 'contextual' &&
+        resource.data.userId != null;
+      
+      // Los administradores pueden leer y escribir todos los reportes
+      allow read, write: if request.auth != null && isAdmin(request.auth.uid);
+    }
+
+    // REGLAS PARA CONTEXTO IA POR USUARIO (mejoradas)
+    match /usuarios/{userId}/contexto_ia/{reporteId} {
+      // Solo el usuario propietario puede leer su contexto IA
+      allow read: if request.auth != null && request.auth.uid == userId;
+      
+      // Solo especialistas pueden escribir contexto IA (con validación de userId)
+      allow write: if request.auth != null && 
+                   isEspecialista(request.auth.uid) &&
+                   request.resource.data.userId == userId;
+      
+      // Validación al crear contexto IA
+      allow create: if request.auth != null && 
+                    isEspecialista(request.auth.uid) &&
+                    request.resource.data.userId == userId &&
+                    request.resource.data.keys().hasAll(['userId', 'specialistId', 'createdAt']) &&
+                    request.resource.data.createdAt is timestamp &&
+                    request.resource.data.specialistId == request.auth.uid;
+      
+      // Los administradores pueden leer y escribir el contexto
+      allow read, write: if request.auth != null && isAdmin(request.auth.uid);
+    }
+
+    // --- OPCIONAL: CONTENIDO PÚBLICO ---
+    match /publico/{docId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    // --- REGLA GLOBAL POR DEFECTO: DENEGAR TODO ---
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+
+  // FUNCIONES AUXILIARES PARA VERIFICAR ROLES
+  function isAdmin(userId) {
+    // Lista de UIDs de administradores (UID REAL DEL ADMIN)
+    return userId in ['afWkPmGLEIMUL4SAUHXf0ryPUJ02'] ||
+           exists(/databases/$(database)/documents/admin_users/$(userId));
+  }
+
+  function isEspecialista(userId) {
+    // Verificar si el usuario existe en la colección de especialistas
+    return exists(/databases/$(database)/documents/usuarios_especialistas/$(userId));
+  }
+}
