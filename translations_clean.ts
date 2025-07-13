@@ -717,7 +717,83 @@ export const translations = {
     comeBackTomorrowForNextPlan: "Come back tomorrow for your new personalized plan!"
   },
   es: {
-    // ... Spanish translations would go here
+    appName: "Fortimind",
+    // Nav
+    dashboard: "Panel",
+    streaks: "Rachas",
+    goals: "Metas",
+    focusMode: "Modo Enfoque",
+    journal: "Diario",
+    learn: "Aprender",
+    support: "Soporte",
+    settings: "Configuración",
+    habits: "Hábitos",
+    statistics: "Estadísticas",
+    challenges: "Desafíos",
+    progress: "Progreso",
+    notifications: "Notificaciones",
+    exerciseChallenge: "Desafío de Ejercicio",
+    nutritionChallenge: "Desafío de Nutrición",
+    // Months
+    monthJanuary: "Enero",
+    monthFebruary: "Febrero",
+    monthMarch: "Marzo",
+    monthApril: "Abril",
+    monthMay: "Mayo",
+    monthJune: "Junio",
+    monthJuly: "Julio",
+    monthAugust: "Agosto",
+    monthSeptember: "Septiembre",
+    monthOctober: "Octubre",
+    monthNovember: "Noviembre",
+    monthDecember: "Diciembre",
+    // Days of the week (short)
+    daySundayShort: "Dom",
+    dayMondayShort: "Lun",
+    dayTuesdayShort: "Mar",
+    dayWednesdayShort: "Mié",
+    dayThursdayShort: "Jue",
+    dayFridayShort: "Vie",
+    daySaturdayShort: "Sáb",
+    // Focus quotes
+    focusQuote1: "La concentración es el secreto de la fuerza.",
+    focusQuote2: "El guerrero exitoso es el hombre promedio con enfoque láser.",
+    focusQuote3: "Aquello en lo que te enfoques crecerá.",
+    focusQuote4: "Tu futuro se crea por lo que haces hoy, no mañana.",
+    focusQuote5: "La disciplina es el puente entre metas y logros.",
+    // Emergency tips
+    emergencyTip1: "Salpícate agua fría en la cara o toma una ducha fría.",
+    emergencyTip2: "Llama o envía un mensaje a un amigo o familiar de confianza inmediatamente.",
+    emergencyTip3: "Realiza actividad física intensa por 5-10 minutos (flexiones, saltos).",
+    emergencyTip4: "Cambia tu entorno: sal a caminar, ve a otra habitación.",
+    emergencyTip5: "Practica la técnica de conexión 5-4-3-2-1: Nombra 5 cosas que ves, 4 que sientes, 3 que escuchas, 2 que hueles, 1 que saboreas.",
+    // Breathing instructions
+    breathingInstruction1: "Inhala lentamente por 4 segundos.",
+    breathingInstruction2: "Mantén la respiración por 4 segundos.",
+    breathingInstruction3: "Exhala lentamente por 4 segundos.",
+    breathingInstruction4: "Mantén la respiración por 4 segundos.",
+    breathingInstruction5: "Repite por 5-10 minutos o hasta estar calmado.",
+    // Add other essential translations as needed - for now, fallback to English properties
+    // Auth
+    loginTitleWelcome: "🧠 Bienvenido de vuelta, guerrero.",
+    loginButton: "Iniciar Sesión",
+    createAccountButton: "Crear Cuenta",
+    logoutButton: "Cerrar Sesión",
+    emailLabel: "Email",
+    passwordLabel: "Contraseña",
+    // Common
+    loading: "Cargando",
+    error: "Error",
+    cancel: "Cancelar",
+    saveChanges: "Guardar Cambios",
+    add: "Agregar",
+    close: "Cerrar",
+    // Dashboard
+    welcomeBack: "¡Bienvenido de vuelta!",
+    days: "días!",
+    // Basic structure - more translations can be added later
+    description: "Descripción",
+    premium: "Premium"
   }
 };
 

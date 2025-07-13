@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { HashRouter, Routes, Route, Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
-import { ShieldCheck, Target, TrendingUp, BookOpen, MessageSquareHeart, Zap, Settings, Sun, Moon, BarChart3, Repeat, Award as AwardIcon, LogOut, UserPlus, LogIn, User as UserIconLucide, Menu as MenuIcon, X as XIcon, Gem, Star, Bell, Dumbbell, Leaf, TestTube } from 'lucide-react'; // Added TestTube
+import { HashRouter, Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
+import { Menu as MenuIcon } from 'lucide-react';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { signOut } from 'firebase/auth'; 
 import { auth } from './firebase'; 
@@ -8,18 +8,20 @@ import ProtectedRoute from './components/ProtectedRoute';
 import LoadingSpinner from './components/LoadingSpinner';
 import AITestComponent from './components/AITestComponent'; // New import
 import Sidebar from './components/Sidebar';
+import AnimatedBackground from './components/AnimatedBackground';
+import IntroScreen from './components/IntroScreen';
 
 import DashboardPage from './pages/DashboardPage';
 import StreaksPage from './pages/StreaksPage';
-import GoalsPage, { GoalsPageProps } from './pages/GoalsPage';
+import GoalsPage from './pages/GoalsPage';
 import FocusPage from './pages/FocusPage';
 import SupportPage from './pages/SupportPage';
 import LearnPage from './pages/LearnPage';
 import JournalPage from './pages/JournalPage';
 import SettingsPage from './pages/SettingsPage';
-import HabitsPage, { HabitsPageProps } from './pages/HabitsPage';
+import HabitsPage from './pages/HabitsPage';
 import StatisticsPage from './pages/StatisticsPage';
-import ChallengesPage, { ChallengesPageProps } from './pages/ChallengesPage';
+import ChallengesPage from './pages/ChallengesPage';
 import ExerciseChallengePage from './pages/ExerciseChallengePage';
 import NutritionChallengePage from './pages/NutritionChallengePage'; // New
 import ExerciseProgramCreationDemo from './components/ExerciseProgramCreationDemo'; // New automatic program demo
@@ -36,17 +38,20 @@ import SubscriptionSuccessPage from './pages/SubscriptionSuccessPage';
 import SubscriptionCancelPage from './pages/SubscriptionCancelPage';
 import PremiumTestComponent from './components/PremiumTestComponent';
 import AdminDashboard from './pages/AdminDashboard_clean';
-import PruebaConsultas from './pages/PruebaConsultas'; // New import
-import ConsultasPage from './pages/ConsultasPage'; // New import
-import ReservaConsultaForm from './pages/ReservaConsultaForm'; // New import
+import PruebaConsultas from './src/pages/PruebaConsultas'; // New import
+import ConsultasPage from './src/pages/ConsultasPage'; // New import
+import ReservaConsultaForm from './src/pages/ReservaConsultaForm'; // New import
+
+// Specialist Dashboard imports
+import NutritionDashboard from './components/NutritionDashboard';
+import PsychologyDashboard from './components/PsychologyDashboard';
+import TrainerDashboard from './components/TrainerDashboard';
 
 import { useLocalStorage } from './hooks/useLocalStorage';
-import { AppTheme, Language, UserXP, AppNotification, AppNotificationType } from './types'; 
+import { AppTheme, UserXP, AppNotificationType } from './types'; 
 import { useLocalization } from './hooks/useLocalization';
-import { APP_NAME } from './constants';
 import FloatingAiButton from './components/FloatingAiButton';
 import { useNotifications } from './hooks/useNotifications'; // New
-import NotificationBell from './components/NotificationBell'; // New
 import NotificationListModal from './components/NotificationListModal'; // New
 import { listenForForegroundMessages, requestNotificationPermissionAndSaveToken } from './services/notificationService'; // FCM Listener & permission request
 import NotificationPermissionModal from './components/NotificationPermissionModal'; // New
@@ -56,13 +61,13 @@ import { usePageTracking, useSessionTracking } from './hooks/useAnalytics'; // A
 const App: React.FC = () => {
   const [firebaseUser, firebaseLoading, firebaseError] = useAuthState(auth);
   const [isGuestModeActive, setIsGuestModeActive] = useLocalStorage<boolean>('isGuestModeActive', false);
+  const [showIntroScreen, setShowIntroScreen] = useState(true);
   
   const [theme, setTheme] = useLocalStorage<AppTheme>('appTheme', AppTheme.LIGHT);
-  const { t, currentLanguage, setLanguage } = useLocalization();
+  const { t, currentLanguage } = useLocalization();
 
   const isDataSavingDisabled = !firebaseUser || isGuestModeActive;
-  const [userXP, setUserXP] = useLocalStorage<UserXP>('userXP', 0, { disabled: isDataSavingDisabled });
-  const [discreetMode, setDiscreetMode] = useLocalStorage<boolean>('discreetMode', false, { disabled: isDataSavingDisabled });
+  const [, setUserXP] = useLocalStorage<UserXP>('userXP', 0, { disabled: isDataSavingDisabled });
   
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const sidebarRef = useRef<HTMLElement>(null);
@@ -76,7 +81,6 @@ const App: React.FC = () => {
   // Notifications
   const { 
     notifications, 
-    unreadCount, 
     addNotification, 
     markAsRead, 
     markAllAsRead,
@@ -206,47 +210,25 @@ const App: React.FC = () => {
     sessionStorage.setItem('notification_prompt_dismissed', 'true');
     setIsNotificationPermissionModalOpen(false);
   };
-
-  const NavLinkContent: React.FC<{ to: string; icon: React.ReactNode; children: React.ReactNode; currentPath: string; onClick?: () => void }> = ({ to, icon, children, currentPath, onClick }) => {
-    const isActive = currentPath === to;
-    const handleLinkClick = () => {
-      if (onClick) onClick();
-    };
-
-    return (
-      <Link
-        to={to}
-        onClick={handleLinkClick} 
-        className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors duration-200 ease-in-out
-                    ${isActive ? 'bg-primary text-white shadow-md' : 'hover:bg-primary-light hover:text-primary-dark dark:hover:bg-slate-700'}
-                    dark:text-neutral-light`}
-      >
-        {icon}
-        <span>{children}</span>
-      </Link>
-    );
-  };
   
-  const NavLinkWrapper: React.FC<{ to: string; icon: React.ReactNode; children: React.ReactNode }> = ({ to, icon, children }) => {
-    const currentPath = useLocation().pathname;
-    return <NavLinkContent to={to} icon={icon} children={children} currentPath={currentPath} />;
-  };
-  
-  const LogoutButtonComponent = () => (
-    <button
-        onClick={handleLogout}
-        className="w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors duration-200 ease-in-out hover:bg-danger-light hover:text-danger-dark dark:hover:bg-red-700 dark:text-neutral-light"
-    >
-        <LogOut size={20} />
-        <span>{isGuestModeActive ? t('exitGuestSession') : t('logoutButton')}</span>
-    </button>
-  );
-
   if (firebaseLoading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-neutral-light dark:bg-neutral-dark">
+        <AnimatedBackground isDarkMode={theme === AppTheme.DARK} />
         <LoadingSpinner size={48} />
         <p className="mt-4 text-neutral-dark dark:text-neutral-light">{t('loading')}...</p>
+      </div>
+    );
+  }
+
+  if (showIntroScreen) {
+    return (
+      <div className="relative h-screen overflow-hidden">
+        <AnimatedBackground isDarkMode={theme === AppTheme.DARK} />
+        <IntroScreen 
+          onComplete={() => setShowIntroScreen(false)}
+          isDarkMode={theme === AppTheme.DARK}
+        />
       </div>
     );
   }
@@ -272,7 +254,8 @@ const App: React.FC = () => {
 
   return (
     <>
-      <div className="flex min-h-screen font-sans bg-neutral-light dark:bg-neutral-dark text-neutral-dark dark:text-neutral-light">
+      <AnimatedBackground isDarkMode={theme === AppTheme.DARK} />
+      <div className="relative z-10 flex min-h-screen font-sans">
         {/* Sidebar responsive */}
         <Sidebar
           isOpen={isSidebarOpen}
@@ -285,15 +268,15 @@ const App: React.FC = () => {
 
         {/* Botón hamburguesa solo en móvil */}
         <button
-          className="md:hidden fixed top-4 left-4 z-50 bg-white dark:bg-slate-800 p-2 rounded-full shadow-lg"
+          className="md:hidden fixed top-4 left-4 z-50 bg-white/10 dark:bg-slate-800/10 backdrop-blur-md p-2 rounded-full shadow-lg border border-white/20 dark:border-slate-700/30"
           onClick={() => setIsSidebarOpen(true)}
           aria-label="Abrir menú"
         >
-          <MenuIcon size={28} />
+          <MenuIcon size={28} className="text-gray-800 dark:text-white" />
         </button>
 
         {/* Contenido principal */}
-        <main className="flex-1 bg-gradient-to-br from-primary-light/20 via-secondary-light/20 to-neutral-light dark:from-neutral-dark dark:via-slate-800 dark:to-slate-900 p-4 md:p-8 pt-20 md:pt-8">
+        <main className="flex-1 p-4 md:p-8 pt-20 md:pt-8">
           <Routes>
             <Route path="/login" element={<LoginPage onContinueAsGuest={handleContinueAsGuest} />} />
             
@@ -325,6 +308,11 @@ const App: React.FC = () => {
             
             {/* Admin Dashboard */}
             <Route path="/admin-dashboard" element={<ProtectedRoute isGuest={isGuestModeActive}><AdminDashboard /></ProtectedRoute>} />
+            
+            {/* Specialist Dashboards */}
+            <Route path="/dashboard-nutricion" element={<ProtectedRoute isGuest={isGuestModeActive}><NutritionDashboard /></ProtectedRoute>} />
+            <Route path="/dashboard-psicologia" element={<ProtectedRoute isGuest={isGuestModeActive}><PsychologyDashboard /></ProtectedRoute>} />
+            <Route path="/dashboard-entrenador" element={<ProtectedRoute isGuest={isGuestModeActive}><TrainerDashboard /></ProtectedRoute>} />
             
             {/* Public Static Pages */}
             <Route path="/terms-of-service" element={<TermsOfServicePage />} />

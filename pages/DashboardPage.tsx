@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ShieldCheck, Target, Zap, MessageSquareHeart, Award, PlayCircle, Repeat, BarChart3, UserCheck, AlertCircle, User as UserIconLucide, LucideProps } from 'lucide-react'; // Renamed User to UserIconLucide
@@ -8,6 +7,7 @@ import { Streak, Goal, JournalEntry, Badge as BadgeType, UserXP } from '../types
 import { DEFAULT_BADGES_KEYS, XP_REWARDS } from '../constants';
 import BadgeDisplay from '../components/BadgeDisplay';
 import { useLocalization } from '../hooks/useLocalization';
+import SpecialistDashboardAccess from '../components/SpecialistDashboardAccess';
 
 interface DashboardPageProps {
   addXP: (points: number) => void; 
@@ -192,6 +192,9 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ addXP, isGuest, firebaseU
         <QuickActionCard title={t('learn')} icon={<PlayCircle size={28} />} to="/learn" description={t('quickActionLearnDesc')} />
         <QuickActionCard title={t('support')} icon={<Award size={28} />} to="/support" description={t('quickActionSupportDesc')} />
       </div>
+
+      {/* Specialist Dashboard Access */}
+      <SpecialistDashboardAccess />
 
       {firebaseUser && !isGuest && (
         <div>
