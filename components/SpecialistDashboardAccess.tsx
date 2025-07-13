@@ -80,30 +80,30 @@ const SpecialistDashboardAccess: React.FC = () => {
         {userIsAdmin && (
           <>
             <GlassButton
-              onClick={() => handleDashboardAccess('nutricion')}
+              onClick={() => handleDashboardAccess('nutricionista')}
               variant="primary"
               className="flex items-center space-x-2 justify-center"
             >
               <span>🥗</span>
-              <span>Nutrición</span>
+              <span>Nutricionista</span>
             </GlassButton>
             
             <GlassButton
-              onClick={() => handleDashboardAccess('psicologia')}
+              onClick={() => handleDashboardAccess('psicologo')}
               variant="primary"
               className="flex items-center space-x-2 justify-center"
             >
               <span>🧠</span>
-              <span>Psicología</span>
+              <span>Psicólogo</span>
             </GlassButton>
             
             <GlassButton
-              onClick={() => handleDashboardAccess('entrenador')}
+              onClick={() => handleDashboardAccess('coach')}
               variant="primary"
               className="flex items-center space-x-2 justify-center"
             >
               <span>💪</span>
-              <span>Entrenador</span>
+              <span>Coach</span>
             </GlassButton>
           </>
         )}
@@ -116,8 +116,8 @@ const SpecialistDashboardAccess: React.FC = () => {
             className="flex items-center space-x-2 justify-center col-span-full"
           >
             <span>
-              {userSpecialistData.tipo === 'nutricion' ? '🥗' : 
-               userSpecialistData.tipo === 'psicologia' ? '🧠' : '💪'}
+              {userSpecialistData.tipo === 'nutricionista' ? '🥗' : 
+               userSpecialistData.tipo === 'psicologo' ? '🧠' : '💪'}
             </span>
             <span>Mi Dashboard - {SPECIALIST_TITLES[userSpecialistData.tipo as SpecialistType]}</span>
           </GlassButton>

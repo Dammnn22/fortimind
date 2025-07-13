@@ -8,7 +8,7 @@ export const initializeSpecialistData = async () => {
     const specialists = [
       {
         uid: 'specialist_nutrition_1',
-        tipo: 'nutricion',
+        tipo: 'nutricionista',
         nombre: 'Dr. María González',
         email: 'maria.gonzalez@fortimind.com',
         diasDisponibles: ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes'],
@@ -16,17 +16,16 @@ export const initializeSpecialistData = async () => {
           inicio: '09:00',
           fin: '17:00'
         },
-        tarifa: 75,
+        tarifa: 75000,
         plataforma: 'Zoom',
         clientes: [],
         activo: true,
         fechaCreacion: serverTimestamp(),
-        especialidades: ['Nutrición clínica', 'Nutrición deportiva', 'Control de peso'],
-        descripcion: 'Nutricionista certificada con 10 años de experiencia en nutrición clínica y deportiva.'
+        fechaActualizacion: serverTimestamp()
       },
       {
         uid: 'specialist_psychology_1',
-        tipo: 'psicologia',
+        tipo: 'psicologo',
         nombre: 'Dra. Ana Martínez',
         email: 'ana.martinez@fortimind.com',
         diasDisponibles: ['Lunes', 'Miércoles', 'Viernes', 'Sábado'],
@@ -34,17 +33,16 @@ export const initializeSpecialistData = async () => {
           inicio: '10:00',
           fin: '18:00'
         },
-        tarifa: 80,
+        tarifa: 80000,
         plataforma: 'Google Meet',
         clientes: [],
         activo: true,
         fechaCreacion: serverTimestamp(),
-        especialidades: ['Terapia cognitivo-conductual', 'Ansiedad', 'Depresión'],
-        descripcion: 'Psicóloga clínica especializada en terapia cognitivo-conductual y trastornos de ansiedad.'
+        fechaActualizacion: serverTimestamp()
       },
       {
         uid: 'specialist_trainer_1',
-        tipo: 'entrenador',
+        tipo: 'coach',
         nombre: 'Carlos Rodríguez',
         email: 'carlos.rodriguez@fortimind.com',
         diasDisponibles: ['Lunes', 'Martes', 'Jueves', 'Viernes', 'Sábado'],
@@ -52,13 +50,12 @@ export const initializeSpecialistData = async () => {
           inicio: '06:00',
           fin: '20:00'
         },
-        tarifa: 60,
-        plataforma: 'Presencial/Online',
+        tarifa: 60000,
+        plataforma: 'Presencial',
         clientes: [],
         activo: true,
         fechaCreacion: serverTimestamp(),
-        especialidades: ['Entrenamiento funcional', 'Musculación', 'Cardio'],
-        descripcion: 'Entrenador personal certificado con experiencia en entrenamiento funcional y musculación.'
+        fechaActualizacion: serverTimestamp()
       }
     ];
 
@@ -90,7 +87,7 @@ export const createSampleSessions = async () => {
         especialista: {
           uid: 'specialist_nutrition_1',
           nombre: 'Dr. María González',
-          tipo: 'nutricion'
+          tipo: 'nutricionista'
         },
         clienteUid: 'sample_client_1',
         clienteNombre: 'Juan Pérez',
@@ -105,7 +102,7 @@ export const createSampleSessions = async () => {
         especialista: {
           uid: 'specialist_psychology_1',
           nombre: 'Dra. Ana Martínez',
-          tipo: 'psicologia'
+          tipo: 'psicologo'
         },
         clienteUid: 'sample_client_2',
         clienteNombre: 'María López',
@@ -120,7 +117,7 @@ export const createSampleSessions = async () => {
         especialista: {
           uid: 'specialist_trainer_1',
           nombre: 'Carlos Rodríguez',
-          tipo: 'entrenador'
+          tipo: 'coach'
         },
         clienteUid: 'sample_client_3',
         clienteNombre: 'Pedro García',

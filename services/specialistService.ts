@@ -15,11 +15,12 @@ import {
 import { db } from '../firebase';
 import { SpecialistData, ClientSession, ClientInfo, SpecialistType } from '../types/specialists';
 
-const ADMIN_UID = 'afWkPmGLEIMUL4SAUHXf0ryPUJ02';
+// Lista de UIDs de administradores - en producción usar variables de entorno
+const ADMIN_UIDS = process.env.ADMIN_UIDS?.split(',') || ['afWkPmGLEIMUL4SAUHXf0ryPUJ02'];
 
 // Verificar si el usuario es admin
 export const isAdmin = (uid: string): boolean => {
-  return uid === ADMIN_UID;
+  return ADMIN_UIDS.includes(uid);
 };
 
 // Obtener datos del especialista

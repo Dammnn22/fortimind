@@ -1,18 +1,19 @@
 export interface SpecialistData {
   uid: string;
-  tipo: 'nutricion' | 'psicologia' | 'entrenador';
+  tipo: 'nutricionista' | 'psicologo' | 'coach';
   nombre: string;
   email: string;
-  diasDisponibles: string[];
+  diasDisponibles: string[]; // ["Lunes", "Miércoles", "Viernes"]
   horario: {
-    inicio: string;
-    fin: string;
-  } | string;
-  tarifa: number;
-  plataforma: 'Zoom' | 'Google Meet' | 'Jitsi' | 'Otra';
-  clientes: string[];
+    inicio: string; // "14:00"
+    fin: string;    // "18:00"
+  };
+  tarifa: number; // 15000
+  plataforma: 'Zoom' | 'Google Meet' | 'Jitsi' | 'Presencial' | 'Otros';
+  clientes: string[]; // Array de UIDs de clientes
   activo: boolean;
   fechaCreacion: any; // Firestore Timestamp
+  fechaActualizacion?: any; // Firestore Timestamp
 }
 
 export interface ClientSession {
@@ -42,16 +43,16 @@ export interface ClientInfo {
   estado: 'activo' | 'inactivo' | 'pausado';
 }
 
-export type SpecialistType = 'nutricion' | 'psicologia' | 'entrenador';
+export type SpecialistType = 'nutricionista' | 'psicologo' | 'coach';
 
 export const SPECIALIST_ROUTES = {
-  nutricion: '/dashboard-nutricion',
-  psicologia: '/dashboard-psicologia',
-  entrenador: '/dashboard-entrenador'
+  nutricionista: '/dashboard-nutricion',
+  psicologo: '/dashboard-psicologia',
+  coach: '/dashboard-entrenador'
 } as const;
 
 export const SPECIALIST_TITLES = {
-  nutricion: 'Dashboard Nutricionista',
-  psicologia: 'Dashboard Psicólogo',
-  entrenador: 'Dashboard Entrenador Personal'
+  nutricionista: 'Dashboard Nutricionista',
+  psicologo: 'Dashboard Psicólogo',
+  coach: 'Dashboard Entrenador Personal'
 } as const;

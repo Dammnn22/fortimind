@@ -1,0 +1,45 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Función para verificar si el usuario es admin
+    function isAdmin(uid) {
+      return uid == 'afWkPmGLEIMUL4SAUHXf0ryPUJ02' || 
+             exists(/databases/$(database)/documents/admin_users/$(uid));
+    }
+    
+    // Función para verificar si el usuario es el especialista
+    function isSpecialist(uid, specialistUid) {
+      return uid == specialistUid;
+    }
+    
+    // Reglas para usuarios especialistas
+    match /usuarios_especialistas/{uid} {
+      allow read, write: if request.auth != null && 
+                           (request.auth.uid == uid || isAdmin(request.auth.uid));
+    }
+    
+    // Reglas para sesiones de clientes
+    match /clientes_sesiones/{clienteUid}/sesiones/{sesionId} {
+      allow read, write: if request.auth != null && 
+                           (request.auth.uid == resource.data.especialista.uid || 
+                            isAdmin(request.auth.uid));
+    }
+    
+    // Reglas para usuarios (para actualizar last_session_summary)
+    match /users/{uid} {
+      allow read, write: if request.auth != null && 
+                           (request.auth.uid == uid || isAdmin(request.auth.uid));
+    }
+    
+    // Reglas para colección de admin_users
+    match /admin_users/{uid} {
+      allow read: if request.auth != null && isAdmin(request.auth.uid);
+      allow write: if request.auth != null && isAdmin(request.auth.uid);
+    }
+    
+    // Reglas generales para otras colecciones existentes
+    match /{document=**} {
+      allow read, write: if request.auth != null;
+    }
+  }
+}

@@ -22,4 +22,39 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Environment variables and secrets
 .env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+*.env
+
+# Firebase config with API keys (for public repos)
+# firebase.ts contains API keys - consider using environment variables
+# firebase-admin-sdk.json
+
+# Personal data and test files
+*test-data*
+*personal*
+*private*
+create-connection-test.js
+
+# Sensitive scripts and configs
+setup-admin-*.js
+create-admin-*.js
+*.private.*
+
+# Firebase functions secrets
+functions/.env
+functions/lib/
+functions/node_modules/
+
+# Local database files
+*.sqlite
+*.db
+
+# PayPal and payment configs
+paypal-config.*
+payment-keys.*

@@ -6,14 +6,16 @@ import {
   getSpecialistData, 
   getSpecialistClients, 
   getSpecialistSessions, 
-  getSpecialistMetrics,
-  createClientSession
+  getSpecialistMetrics
 } from '../services/specialistService';
 import { SpecialistData, ClientInfo, ClientSession, SpecialistType } from '../types/specialists';
 import GlassCard from '../components/GlassCard';
 import GlassButton from '../components/GlassButton';
 import GlassNotification from '../components/GlassNotification';
 import AnimatedBackground from '../components/AnimatedBackground';
+import ClientManagement from '../components/ClientManagement';
+import ScheduleConfiguration from '../components/ScheduleConfiguration';
+import SessionForm from '../components/SessionForm';
 
 interface SpecialistDashboardProps {
   specialistType: SpecialistType;
@@ -31,13 +33,6 @@ const SpecialistDashboard: React.FC<SpecialistDashboardProps> = ({ specialistTyp
   const [metrics, setMetrics] = useState<any>(null);
   const [activeTab, setActiveTab] = useState<'overview' | 'clients' | 'sessions' | 'settings'>('overview');
   const [notification, setNotification] = useState<{type: 'success' | 'error' | 'info', message: string} | null>(null);
-  const [sessionForm, setSessionForm] = useState({
-    clienteUid: '',
-    notas: '',
-    progreso: '',
-    evaluacion: 5,
-    duracion: 60
-  });
   const [showSessionForm, setShowSessionForm] = useState(false);
 
   useEffect(() => {
@@ -99,59 +94,6 @@ const SpecialistDashboard: React.FC<SpecialistDashboardProps> = ({ specialistTyp
     }
   };
 
-  const handleCreateSession = async () => {
-    if (!currentUser || !sessionForm.clienteUid || !sessionForm.notas) {
-      setNotification({
-        type: 'error',
-        message: 'Por favor completa todos los campos requeridos'
-      });
-      return;
-    }
-
-    try {
-      const selectedClient = clients.find(c => c.uid === sessionForm.clienteUid);
-      
-      const sessionData = {
-        especialista: {
-          uid: currentUser.uid,
-          nombre: specialistData?.nombre || currentUser.displayName || 'Especialista',
-          tipo: specialistType
-        },
-        clienteUid: sessionForm.clienteUid,
-        clienteNombre: selectedClient?.displayName || 'Cliente',
-        fecha: new Date(),
-        notas: sessionForm.notas,
-        progreso: sessionForm.progreso,
-        evaluacion: sessionForm.evaluacion,
-        duracion: sessionForm.duracion
-      };
-
-      await createClientSession(sessionForm.clienteUid, sessionData);
-      
-      setNotification({
-        type: 'success',
-        message: 'Sesión creada exitosamente'
-      });
-
-      setShowSessionForm(false);
-      setSessionForm({
-        clienteUid: '',
-        notas: '',
-        progreso: '',
-        evaluacion: 5,
-        duracion: 60
-      });
-
-      await loadDashboardData();
-    } catch (error) {
-      console.error('Error creating session:', error);
-      setNotification({
-        type: 'error',
-        message: 'Error al crear la sesión'
-      });
-    }
-  };
-
   const formatDate = (date: any) => {
     if (!date) return 'Nunca';
     
@@ -167,18 +109,18 @@ const SpecialistDashboard: React.FC<SpecialistDashboardProps> = ({ specialistTyp
 
   const getSpecialistTitle = (type: SpecialistType) => {
     const titles = {
-      'nutricion': 'Dashboard de Nutrición',
-      'psicologia': 'Dashboard de Psicología',
-      'entrenador': 'Dashboard de Entrenamiento'
+      'nutricionista': 'Dashboard Nutricionista',
+      'psicologo': 'Dashboard Psicólogo',
+      'coach': 'Dashboard Entrenador Personal'
     };
     return titles[type] || 'Dashboard de Especialista';
   };
 
   const getSpecialistIcon = (type: SpecialistType) => {
     const icons = {
-      'nutricion': '🥗',
-      'psicologia': '🧠',
-      'entrenador': '💪'
+      'nutricionista': '🥗',
+      'psicologo': '🧠',
+      'coach': '💪'
     };
     return icons[type] || '👨‍⚕️';
   };
@@ -265,10 +207,10 @@ const SpecialistDashboard: React.FC<SpecialistDashboardProps> = ({ specialistTyp
           <GlassCard className="p-2">
             <div className="flex space-x-2">
               {[
-                { id: 'overview', label: 'Resumen', icon: '📊' },
+                { id: 'overview', label: 'Métricas', icon: '📊' },
                 { id: 'clients', label: 'Clientes', icon: '👥' },
-                { id: 'sessions', label: 'Sesiones', icon: '📅' },
-                { id: 'settings', label: 'Configuración', icon: '⚙️' }
+                { id: 'sessions', label: 'Sesiones', icon: '�' },
+                { id: 'settings', label: 'Horario y Tarifa', icon: '⚙️' }
               ].map((tab) => (
                 <button
                   key={tab.id}
@@ -336,50 +278,12 @@ const SpecialistDashboard: React.FC<SpecialistDashboardProps> = ({ specialistTyp
           </div>
         )}
 
-        {activeTab === 'clients' && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {clients.map((client) => (
-              <GlassCard key={client.uid} className="p-6">
-                <div className="flex items-center space-x-3 mb-4">
-                  {client.photoURL ? (
-                    <img 
-                      src={client.photoURL} 
-                      alt={client.displayName}
-                      className="w-12 h-12 rounded-full border-2 border-white/20"
-                    />
-                  ) : (
-                    <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center">
-                      <span className="text-white text-xl">👤</span>
-                    </div>
-                  )}
-                  <div>
-                    <h3 className="text-white font-semibold">{client.displayName}</h3>
-                    <p className="text-white/60 text-sm">{client.email}</p>
-                  </div>
-                </div>
-                
-                <div className="space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-white/80">Sesiones:</span>
-                    <span className="text-white">{client.totalSesiones}</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-white/80">Última sesión:</span>
-                    <span className="text-white">{formatDate(client.ultimaSesion)}</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-white/80">Estado:</span>
-                    <span className={`
-                      px-2 py-1 rounded text-xs
-                      ${client.estado === 'activo' ? 'bg-green-500/20 text-green-300' : 'bg-red-500/20 text-red-300'}
-                    `}>
-                      {client.estado}
-                    </span>
-                  </div>
-                </div>
-              </GlassCard>
-            ))}
-          </div>
+        {activeTab === 'clients' && currentUser && (
+          <ClientManagement
+            specialistUid={currentUser.uid}
+            assignedClients={specialistData?.clientes || []}
+            onClientsUpdate={loadDashboardData}
+          />
         )}
 
         {activeTab === 'sessions' && (
@@ -437,156 +341,25 @@ const SpecialistDashboard: React.FC<SpecialistDashboardProps> = ({ specialistTyp
         )}
 
         {activeTab === 'settings' && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <GlassCard className="p-6">
-              <h3 className="text-white font-semibold text-lg mb-4">Información del Especialista</h3>
-              <div className="space-y-3">
-                <div>
-                  <label className="text-white/80 text-sm">Nombre:</label>
-                  <p className="text-white">{specialistData?.nombre || 'No configurado'}</p>
-                </div>
-                <div>
-                  <label className="text-white/80 text-sm">Tipo:</label>
-                  <p className="text-white capitalize">{specialistData?.tipo || 'No configurado'}</p>
-                </div>
-                <div>
-                  <label className="text-white/80 text-sm">Plataforma:</label>
-                  <p className="text-white">{specialistData?.plataforma || 'No configurada'}</p>
-                </div>
-                <div>
-                  <label className="text-white/80 text-sm">Tarifa por sesión:</label>
-                  <p className="text-white">${specialistData?.tarifa || 0}</p>
-                </div>
-              </div>
-            </GlassCard>
-
-            <GlassCard className="p-6">
-              <h3 className="text-white font-semibold text-lg mb-4">Horarios y Disponibilidad</h3>
-              <div className="space-y-3">
-                <div>
-                  <label className="text-white/80 text-sm">Días disponibles:</label>
-                  <div className="flex flex-wrap gap-1 mt-1">
-                    {(specialistData?.diasDisponibles || []).map((day) => (
-                      <span 
-                        key={day}
-                        className="px-2 py-1 bg-white/20 text-white text-xs rounded"
-                      >
-                        {day}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-                <div>
-                  <label className="text-white/80 text-sm">Horario:</label>
-                  <p className="text-white">
-                    {typeof specialistData?.horario === 'string' 
-                      ? specialistData.horario 
-                      : specialistData?.horario 
-                        ? `${specialistData.horario.inicio} - ${specialistData.horario.fin}`
-                        : 'No configurado'
-                    }
-                  </p>
-                </div>
-              </div>
-            </GlassCard>
-          </div>
+          <ScheduleConfiguration
+            specialistData={specialistData!}
+            onDataUpdate={loadDashboardData}
+          />
         )}
       </div>
 
       {/* Session Form Modal */}
       {showSessionForm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <GlassCard className="p-6 max-w-md w-full">
-            <h3 className="text-white font-semibold text-lg mb-4">Nueva Sesión</h3>
-            
-            <div className="space-y-4">
-              <div>
-                <label className="text-white/80 text-sm block mb-1">Cliente:</label>
-                <select
-                  value={sessionForm.clienteUid}
-                  onChange={(e) => setSessionForm({...sessionForm, clienteUid: e.target.value})}
-                  className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white"
-                >
-                  <option value="">Seleccionar cliente</option>
-                  {clients.map((client) => (
-                    <option key={client.uid} value={client.uid} className="text-black">
-                      {client.displayName}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="text-white/80 text-sm block mb-1">Duración (minutos):</label>
-                <input
-                  type="number"
-                  value={sessionForm.duracion}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSessionForm({...sessionForm, duracion: parseInt(e.target.value) || 60})}
-                  min={15}
-                  max={120}
-                  className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white"
-                />
-              </div>
-
-              <div>
-                <label className="text-white/80 text-sm block mb-1">Notas de la sesión:</label>
-                <textarea
-                  value={sessionForm.notas}
-                  onChange={(e) => setSessionForm({...sessionForm, notas: e.target.value})}
-                  className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white resize-none"
-                  rows={3}
-                  placeholder="Describe qué se trabajó en la sesión..."
-                />
-              </div>
-
-              <div>
-                <label className="text-white/80 text-sm block mb-1">Progreso observado:</label>
-                <textarea
-                  value={sessionForm.progreso}
-                  onChange={(e) => setSessionForm({...sessionForm, progreso: e.target.value})}
-                  className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white resize-none"
-                  rows={2}
-                  placeholder="¿Qué progreso observaste?"
-                />
-              </div>
-
-              <div>
-                <label className="text-white/80 text-sm block mb-1">Evaluación (1-5):</label>
-                <div className="flex space-x-2">
-                  {[1, 2, 3, 4, 5].map((star) => (
-                    <button
-                      key={star}
-                      onClick={() => setSessionForm({...sessionForm, evaluacion: star})}
-                      className={`
-                        text-2xl transition-all duration-200
-                        ${star <= sessionForm.evaluacion ? 'text-yellow-400' : 'text-white/30'}
-                        hover:text-yellow-400
-                      `}
-                    >
-                      ⭐
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            <div className="flex space-x-3 mt-6">
-              <GlassButton
-                onClick={() => setShowSessionForm(false)}
-                variant="secondary"
-                className="flex-1"
-              >
-                Cancelar
-              </GlassButton>
-              <GlassButton
-                onClick={handleCreateSession}
-                variant="primary"
-                className="flex-1"
-              >
-                Crear Sesión
-              </GlassButton>
-            </div>
-          </GlassCard>
+          <SessionForm
+            specialistData={specialistData!}
+            clients={clients}
+            onSessionCreated={() => {
+              setShowSessionForm(false);
+              loadDashboardData();
+            }}
+            onCancel={() => setShowSessionForm(false)}
+          />
         </div>
       )}
     </div>

@@ -2,204 +2,190 @@
 
 ## 📋 Resumen de la Implementación
 
-Se ha implementado exitosamente un sistema completo de dashboards personalizados para especialistas en FortiMind, incluyendo:
+Se ha implementado exitosamente un sistema completo de dashboards personalizados para especialistas en FortiMind, siguiendo exactamente las especificaciones del prompt:
 
-### 🎯 Características Principales
+### 🎯 Dashboards Implementados
 
-1. **Dashboards Especializados**:
-   - 🥗 **Dashboard de Nutrición** (`/dashboard-nutricion`)
-   - 🧠 **Dashboard de Psicología** (`/dashboard-psicologia`)
-   - 💪 **Dashboard de Entrenador** (`/dashboard-entrenador`)
+1. **Dashboard de Nutricionista** (`/dashboard-nutricion`)
+2. **Dashboard de Psicólogo** (`/dashboard-psicologia`)
+3. **Dashboard de Entrenador Personal** (`/dashboard-entrenador`)
 
-2. **Control de Acceso**:
-   - Sistema de autenticación basado en roles
-   - Admin puede acceder a todos los dashboards
-   - Especialistas solo pueden acceder a su dashboard específico
-   - Verificación de permisos en tiempo real
+### 🔐 Control de Acceso Implementado
 
-3. **Funcionalidades del Dashboard**:
-   - **Resumen General**: Métricas clave y estadísticas
-   - **Gestión de Clientes**: Lista de clientes asignados
-   - **Registro de Sesiones**: Historial de sesiones con evaluaciones
-   - **Configuración**: Información del especialista y horarios
+- **Nutricionista**: Solo accede a `/dashboard-nutricion`
+- **Psicólogo**: Solo accede a `/dashboard-psicologia`
+- **Entrenador Personal**: Solo accede a `/dashboard-entrenador`
+- **Admin** (`afWkPmGLEIMUL4SAUHXf0ryPUJ02`): Accede a todos los dashboards
 
-### 🗂️ Archivos Creados
+### 📋 Funcionalidades Implementadas
 
-#### Componentes Principales
-- `components/SpecialistDashboard.tsx` - Componente principal del dashboard
-- `components/NutritionDashboard.tsx` - Dashboard específico de nutrición
-- `components/PsychologyDashboard.tsx` - Dashboard específico de psicología
-- `components/TrainerDashboard.tsx` - Dashboard específico de entrenador
-- `components/SpecialistDashboardAccess.tsx` - Componente de acceso desde dashboard principal
+#### 🧑‍⚕️ Gestión de Clientes
+- ✅ Ver y administrar lista de clientes asignados
+- ✅ Agregar/Eliminar clientes con interfaz intuitiva
+- ✅ Ver perfil resumido del cliente (nombre, estado, sesiones)
+- ✅ Búsqueda de usuarios disponibles
 
-#### Tipos y Definiciones
-- `types/specialists.ts` - Interfaces TypeScript para el sistema de especialistas
-  - `SpecialistData` - Datos del especialista
-  - `ClientSession` - Sesión con cliente
-  - `ClientInfo` - Información del cliente
-  - `SpecialistType` - Tipos de especialistas
+#### 📅 Gestión de Horarios y Tarifas
+- ✅ Establecer días disponibles (Lunes a Domingo)
+- ✅ Establecer horario (inicio y fin)
+- ✅ Establecer tarifa por sesión en COP
+- ✅ Seleccionar plataforma (Zoom, Google Meet, Jitsi, Presencial, Otros)
+- ✅ Guardado automático en Firestore
 
-#### Servicios
-- `services/specialistService.ts` - Servicios para gestión de especialistas
-- `services/initializeSpecialists.ts` - Configuración inicial del sistema
+#### 📑 Registro de Sesiones Completo
+- ✅ Crear sesión con fecha y hora específica
+- ✅ Seleccionar cliente atendido
+- ✅ Notas detalladas de la sesión
+- ✅ Evaluación por estrellas (1-5)
+- ✅ Progreso observado
+- ✅ Duración configurable (30-120 minutos)
+- ✅ Guardado en `clientes_sesiones/{client_uid}/sesiones/{id}`
 
-#### Scripts
-- `setup-specialists.mjs` - Script para configurar datos iniciales
+#### 📈 Métricas del Especialista
+- ✅ Total de clientes activos
+- ✅ Total sesiones realizadas
+- ✅ Tarifa actual configurada
+- ✅ Horarios activos
+- ✅ Última sesión realizada
 
-### 🔐 Sistema de Acceso
+### 🗄️ Estructura Firestore Implementada
 
-#### Admin (`afWkPmGLEIMUL4SAUHXf0ryPUJ02`)
-- Acceso completo a todos los dashboards
-- Puede configurar el sistema de especialistas
-- Ve todos los dashboards disponibles
-
-#### Especialistas
-- Acceso solo a su dashboard específico
-- Debe tener `tipo` y `activo: true` en Firestore
-- Verificación automática de permisos
-
-### 🎨 Diseño Visual
-
-- **Glassmorphism**: Mantiene el diseño glassmorphism implementado
-- **Responsive**: Adaptable a diferentes tamaños de pantalla
-- **Animaciones**: Fondos animados y transiciones suaves
-- **Iconos**: Iconos específicos para cada tipo de especialista
-
-### 🗄️ Estructura de Datos en Firestore
-
-#### Colección `usuarios_especialistas`
+#### `usuarios_especialistas/{uid}`
 ```javascript
 {
   uid: string,
-  tipo: 'nutricion' | 'psicologia' | 'entrenador',
+  tipo: "nutricionista" | "psicologo" | "coach",
   nombre: string,
   email: string,
-  diasDisponibles: string[],
-  horario: { inicio: string, fin: string } | string,
-  tarifa: number,
-  plataforma: string,
-  clientes: string[],
-  activo: boolean,
-  especialidades: string[],
-  descripcion: string,
+  diasDisponibles: ["Lunes", "Miércoles", "Viernes"],
+  horario: { inicio: "14:00", fin: "18:00" },
+  tarifa: 75000,
+  plataforma: "Zoom",
+  clientes: [uid1, uid2, uid3],
+  activo: true,
   fechaCreacion: Timestamp,
   fechaActualizacion: Timestamp
 }
 ```
 
-#### Colección `clientes_sesiones/{clienteUid}/sesiones`
+#### `clientes_sesiones/{cliente_uid}/sesiones/{sesion_id}`
 ```javascript
 {
-  especialista: {
-    uid: string,
-    nombre: string,
-    tipo: string
-  },
+  especialista: {uid, nombre, tipo},
   clienteUid: string,
   clienteNombre: string,
   fecha: Timestamp,
   notas: string,
   progreso: string,
-  evaluacion: number, // 1-5
-  duracion: number, // en minutos
+  evaluacion: 1-5,
+  duracion: number,
   fechaCreacion: Timestamp
 }
 ```
 
-### 📱 Funcionalidades del Dashboard
+#### `users/{uid}/last_session_summary`
+```javascript
+{
+  last_session_summary: string,
+  last_session_date: Timestamp,
+  last_session_specialist: {uid, nombre, tipo}
+}
+```
 
-#### Pestaña "Resumen"
-- Total de clientes asignados
-- Total de sesiones realizadas
-- Tarifa por sesión
-- Fecha de última sesión
+### 🛡️ Reglas de Firestore Implementadas
 
-#### Pestaña "Clientes"
-- Lista de clientes asignados
-- Información de contacto
-- Número de sesiones realizadas
-- Estado del cliente (activo/inactivo)
+```javascript
+// Solo el especialista puede acceder a su información
+match /usuarios_especialistas/{uid} {
+  allow read, write: if request.auth.uid == uid || isAdmin(request.auth.uid);
+}
 
-#### Pestaña "Sesiones"
-- Historial de sesiones realizadas
-- Notas de cada sesión
-- Progreso observado
-- Evaluación por estrellas (1-5)
-- Duración de la sesión
+// Solo el especialista puede acceder a sus sesiones
+match /clientes_sesiones/{clienteUid}/sesiones/{sesionId} {
+  allow read, write: if request.auth.uid == resource.data.especialista.uid || isAdmin(request.auth.uid);
+}
 
-#### Pestaña "Configuración"
-- Información del especialista
-- Horarios de disponibilidad
-- Días disponibles
-- Tarifa por sesión
-- Plataforma preferida
+// Admin puede acceder a todo
+function isAdmin(uid) {
+  return uid == 'afWkPmGLEIMUL4SAUHXf0ryPUJ02';
+}
+```
 
-### 🔧 Configuración del Sistema
+### 📱 UI Implementada
 
-Para configurar especialistas iniciales:
+#### Menú Lateral con Pestañas:
+- 📊 **Métricas**: Resumen de estadísticas
+- 👥 **Clientes**: Gestión de clientes asignados
+- 📑 **Sesiones**: Registro y historial de sesiones
+- ⚙️ **Horario y Tarifa**: Configuración del especialista
 
-1. **Desde el Dashboard Admin**:
-   - Hacer clic en "Configurar Sistema de Especialistas"
-   - Se crearán especialistas de ejemplo automáticamente
+#### Títulos Específicos:
+- "Dashboard Nutricionista"
+- "Dashboard Psicólogo"
+- "Dashboard Entrenador Personal"
 
-2. **Desde la Terminal**:
-   ```bash
-   node setup-specialists.mjs
-   ```
+### 🎨 Características de Diseño
 
-### 🚀 Rutas Implementadas
+- **Glassmorphism**: Diseño moderno con efectos de vidrio
+- **Responsive**: Adaptable a todos los dispositivos
+- **Animaciones**: Fondos animados y transiciones suaves
+- **Iconos**: Específicos para cada tipo de especialista
+- **Notificaciones**: Sistema de retroalimentación visual
 
-- `/dashboard-nutricion` - Dashboard de Nutrición
-- `/dashboard-psicologia` - Dashboard de Psicología  
-- `/dashboard-entrenador` - Dashboard de Entrenador
+### 🔐 Seguridad y Escalabilidad
 
-### 🛡️ Seguridad
+- ✅ Accesos controlados en frontend y backend
+- ✅ Rutas protegidas con validación de rol
+- ✅ Firestore con reglas estrictas de seguridad
+- ✅ Preparado para agregar más roles (psiquiatra, terapeuta, etc.)
 
-- Verificación de permisos en cada acceso
-- Control de roles (Admin vs Especialista)
-- Validación de datos en Firestore
-- Manejo de errores robusto
+### 🧪 Datos de Prueba
 
-### 📊 Métricas y Estadísticas
+- ✅ Especialistas de ejemplo creados automáticamente
+- ✅ Sesiones de muestra con datos realistas
+- ✅ Verificación de acceso por rol
+- ✅ Datos seguros y accesibles solo por especialista y admin
 
-- Contador de clientes activos
-- Total de sesiones realizadas
-- Última sesión registrada
-- Evaluaciones promedio
-- Ingresos estimados por tarifa
+### � Archivos Creados/Modificados
 
-### 🌐 Integración con el Sistema Principal
+#### Componentes Principales
+- `components/SpecialistDashboard.tsx` - Dashboard principal
+- `components/ClientManagement.tsx` - Gestión de clientes
+- `components/ScheduleConfiguration.tsx` - Configuración de horarios
+- `components/SessionForm.tsx` - Formulario de sesiones
+- `components/SpecialistDashboardAccess.tsx` - Acceso desde dashboard
 
-- Componente de acceso desde el dashboard principal
-- Preserva toda la funcionalidad existente
-- Mantiene el sistema de notificaciones glassmorphism
-- Compatible con el sistema de autenticación actual
+#### Tipos y Servicios
+- `types/specialists.ts` - Interfaces TypeScript actualizadas
+- `services/specialistService.ts` - Servicios de backend
+- `services/initializeSpecialists.ts` - Configuración inicial
 
-### ✅ Estado de Implementación
+#### Reglas de Seguridad
+- `firestore.rules.specialists` - Reglas de Firestore
 
-- ✅ Tipos TypeScript definidos
-- ✅ Servicios de backend implementados
-- ✅ Componentes de frontend creados
-- ✅ Control de acceso configurado
-- ✅ Rutas añadidas al sistema de navegación
-- ✅ Integración con dashboard principal
-- ✅ Sistema de inicialización de datos
-- ✅ Diseño glassmorphism implementado
-- ✅ Build de producción exitoso
+### 🚀 Estado Final
 
-### 🎊 Resultado Final
+El sistema está **100% funcional** y cumple con todos los requerimientos especificados:
 
-El sistema de dashboards de especialistas está completamente funcional y listo para uso en producción. Los especialistas pueden:
+- ✅ **Control de acceso por rol** implementado
+- ✅ **Gestión completa de clientes** funcionando
+- ✅ **Configuración de horarios y tarifas** operativa
+- ✅ **Registro detallado de sesiones** implementado
+- ✅ **Métricas en tiempo real** funcionando
+- ✅ **Seguridad Firestore** configurada
+- ✅ **UI moderna y responsive** implementada
+- ✅ **Escalabilidad** para futuros roles
 
-1. **Acceder** a su dashboard específico
-2. **Gestionar** sus clientes asignados
-3. **Registrar** sesiones con evaluaciones
-4. **Visualizar** métricas y estadísticas
-5. **Configurar** su información y horarios
+### 📲 Uso del Sistema
 
-Los administradores pueden acceder a todos los dashboards y configurar el sistema según sea necesario.
+1. **Acceso**: Desde el dashboard principal, los especialistas ven el panel de acceso
+2. **Gestión**: Pueden configurar horarios, tarifas y gestionar clientes
+3. **Sesiones**: Registro completo de sesiones con evaluaciones
+4. **Métricas**: Visualización de estadísticas en tiempo real
+
+El sistema de dashboards de especialistas está completamente implementado y listo para uso en producción. 🎉
 
 ---
 
 *Implementación completada el 13 de julio de 2025*
-*Sistema listo para uso en producción* 🚀
+*Cumple al 100% con los requerimientos especificados* ✅
